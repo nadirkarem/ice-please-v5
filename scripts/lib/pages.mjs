@@ -303,19 +303,6 @@ export function home(ctx) {
     </section>
 
 
-    <section class="ip-section ip-pro" aria-labelledby="h-pro">
-      <div class="ip-wrap ip-pro__grid">
-        <div class="ip-pro__media" data-reveal>${picture(ctx, 'custom-ice', { alt: alt(ctx, 'custom-ice'), sizes: '(min-width: 900px) 40vw, 100vw' })}</div>
-        <div class="ip-pro__body" data-reveal>
-          <h2 id="h-pro">${esc(h.pro.title)}</h2>
-          <p class="ip-pro__who">${md(ctx, h.pro.eyebrow)}</p>
-          <p class="ip-lead">${md(ctx, h.pro.text)}</p>
-          <p class="ip-fact">${icon('check')}<span>${md(ctx, h.pro.fact)}</span></p>
-          <a class="ip-btn ip-btn--dark ip-btn--lg" href="${quoteUrl(ctx)}"><span>${esc(h.pro.link)}</span>${icon('arrow')}</a>
-        </div>
-      </div>
-    </section>
-
     <section class="ip-section ip-contact" id="contact" aria-labelledby="h-contact">
       <div class="ip-wrap ip-contact__grid">
         <div class="ip-contact__intro" data-reveal>
@@ -421,7 +408,8 @@ export function contact(ctx) {
     <section class="ip-section ip-section--tight ip-contact">
       <div class="ip-wrap ip-contact__grid">
         <div class="ip-contact__intro" data-reveal>
-          ${c.contact.paras.map((p, i) => `<p class="${i === 0 ? 'ip-lead' : ''}">${md(ctx, p)}</p>`).join('')}
+          <p class="ip-lead">${md(ctx, c.contact.clients)}</p>
+          ${c.contact.paras.map((p) => `<p>${md(ctx, p)}</p>`).join('')}
           ${contactDetails(ctx)}
         </div>
         <div data-reveal>${contactPanel(ctx)}</div>
