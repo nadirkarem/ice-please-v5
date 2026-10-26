@@ -564,13 +564,13 @@ html.lenis, html.lenis body { height: auto; }
 .ip-saga.is-live .ip-chapter__claim { font-size: clamp(2.4rem, 1.2rem + 4.6vw, 4.75rem); max-width: 11ch; }
 @media (max-width: 899px) {
   .ip-saga { --saga-k: 6.1; --rect-t: 0px; }
-  .ip-saga.is-live .ip-saga__stage { clip-path: inset(calc((1 - var(--e)) * 24%) calc((1 - var(--e)) * 12%) calc((1 - var(--e)) * 24% + var(--d) * 54%) calc((1 - var(--e)) * 12%) round calc((1 - var(--e)) * 22px) calc((1 - var(--e)) * 22px) calc((1 - var(--e)) * 22px + var(--d) * 20px) calc((1 - var(--e)) * 22px + var(--d) * 20px)); }
-  .ip-saga.is-live .ip-saga__open { translate: 0 calc(var(--d) * -27%); }
+  .ip-saga.is-live .ip-saga__stage { clip-path: inset(calc((1 - var(--e)) * 24%) calc((1 - var(--e)) * 12%) calc((1 - var(--e)) * 24% + var(--d) * 48%) calc((1 - var(--e)) * 12%) round calc((1 - var(--e)) * 22px) calc((1 - var(--e)) * 22px) calc((1 - var(--e)) * 22px + var(--d) * 20px) calc((1 - var(--e)) * 22px + var(--d) * 20px)); }
+  .ip-saga.is-live .ip-saga__open { translate: 0 calc(var(--d) * -24%); }
   .ip-saga__title { inset-inline: var(--ip-gutter); max-width: 6ch; font-size: clamp(3.6rem, 1rem + 19vw, 6.4rem); }
   .ip[lang='ar'] .ip-saga__title { max-width: 8ch; }
-  .ip-saga.is-live .ip-saga__rect { inset: 0 0 auto 0; width: 100%; height: 46%; }
-  .ip-saga.is-live .ip-saga__claims { inset-block: 46% 0; inset-inline: var(--ip-gutter); }
-  .ip-saga.is-live .ip-chapter__claim { font-size: clamp(2.3rem, 1rem + 9vw, 3.6rem); }
+  .ip-saga.is-live .ip-saga__rect { inset: 0 0 auto 0; width: 100%; height: 52%; }
+  .ip-saga.is-live .ip-saga__claims { inset-block: 52% 0; inset-inline: var(--ip-gutter); }
+  .ip-saga.is-live .ip-chapter__claim { font-size: clamp(2.1rem, 1rem + 8vw, 3.2rem); }
 }
 
 /* ---- film: the range in a quiet loop ---------------------------------------------------------- */
