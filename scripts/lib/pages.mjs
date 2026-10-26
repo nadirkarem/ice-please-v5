@@ -63,10 +63,9 @@ function tile(ctx, id) {
 }
 
 /** Plain page title on a soft light band (used where there is no photograph). */
-function pageHead(ctx, { eyebrow, title, lead, soft = false }) {
+function pageHead(ctx, { title, lead, soft = false }) {
   return `<header class="ip-pagehead${soft ? ' ip-pagehead--soft' : ''}">
       <div class="ip-wrap">
-        ${eyebrow ? `<p class="ip-eyebrow">${md(ctx, eyebrow)}</p>` : ''}
         <h1 class="ip-pagehead__title">${md(ctx, title)}</h1>
         ${lead ? `<p class="ip-lead">${md(ctx, lead)}</p>` : ''}
       </div>
@@ -125,15 +124,17 @@ function story(ctx) {
             <source src="/media/story-${n}.mp4" type="video/mp4">
             <source src="/media/story-${n}.webm" type="video/webm">
           </video>`).join('');
-  const chapters = claims.map((claim, i) => `<li class="ip-chapter" data-ip-chapter>
-          <p class="ip-chapter__step">${esc(c.savoir.stepLabels[i])}</p>
-          <p class="ip-chapter__claim">${esc(claim)}</p>
+  const chapters = claims.map((claim, i) => `<li class="ip-chapter" data-ip-chapter data-step="${esc(c.savoir.stepLabels[i])}">
+          <h3 class="ip-chapter__claim"><span class="ip-sr">${esc(c.savoir.stepLabels[i])} : </span>${esc(claim)}</h3>
         </li>`).join('');
   return `<section class="ip-story" data-ip-story aria-label="${esc(c.ui.steps)}">
       <div class="ip-story__grid">
         <div class="ip-story__stage">
           <div class="ip-story__layers" aria-hidden="true">${layers}</div>
-          <div class="ip-story__bar" aria-hidden="true"><span><span data-count>1</span> ${esc(c.ui.stepOf)} ${claims.length}</span><i></i></div>
+          <div class="ip-story__caption" aria-hidden="true">
+            <span class="ip-story__step" data-step>${esc(c.savoir.stepLabels[0])}</span>
+            <span class="ip-story__bar"><span><span data-count>1</span> ${esc(c.ui.stepOf)} ${claims.length}</span><i></i></span>
+          </div>
           <button class="ip-story__toggle" type="button" data-ip-story-toggle aria-pressed="false" data-pause="${esc(c.ui.videoPause)}" data-play="${esc(c.ui.videoPlay)}"><span data-label>${esc(c.ui.videoPause)}</span></button>
         </div>
         <ol class="ip-story__chapters">${chapters}</ol>
@@ -250,9 +251,8 @@ function instagram(ctx) {
   return `<section class="ip-section ip-insta" aria-labelledby="h-insta">
       <div class="ip-wrap ip-insta__wrap" data-reveal>
         <div class="ip-insta__head">
-          <span class="ip-insta__avatar"><img src="/brand/logo.webp" width="640" height="485" alt=""></span>
           <h2 id="h-insta">${esc(c.home.instagram.title)}</h2>
-          <bdi class="ip-insta__handle" dir="ltr">@${site.instagram}</bdi>
+          <p class="ip-insta__who"><span class="ip-insta__avatar"><img src="/brand/logo.webp" width="640" height="485" alt=""></span><bdi class="ip-insta__handle" dir="ltr">@${site.instagram}</bdi></p>
           <a class="ip-btn ip-btn--dark" href="${site.instagramUrl}" ${external}>${icon('instagram')}<span>${esc(c.ui.instagramView)}</span></a>
         </div>
         <ul class="ip-insta__grid">${tiles}</ul>
@@ -307,8 +307,8 @@ export function home(ctx) {
       <div class="ip-wrap ip-pro__grid">
         <div class="ip-pro__media" data-reveal>${picture(ctx, 'custom-ice', { alt: alt(ctx, 'custom-ice'), sizes: '(min-width: 900px) 40vw, 100vw' })}</div>
         <div class="ip-pro__body" data-reveal>
-          <p class="ip-eyebrow">${md(ctx, h.pro.eyebrow)}</p>
           <h2 id="h-pro">${esc(h.pro.title)}</h2>
+          <p class="ip-pro__who">${md(ctx, h.pro.eyebrow)}</p>
           <p class="ip-lead">${md(ctx, h.pro.text)}</p>
           <p class="ip-fact">${icon('check')}<span>${md(ctx, h.pro.fact)}</span></p>
           <a class="ip-btn ip-btn--dark ip-btn--lg" href="${quoteUrl(ctx)}"><span>${esc(h.pro.link)}</span>${icon('arrow')}</a>
@@ -397,7 +397,6 @@ const ABOUT_IMAGES = ['about-art', 'hero'];
 export function about(ctx) {
   const { c } = ctx;
   const a = c.about;
-  const p = c.pro;
   return `
     ${pageHead(ctx, { title: a.title, soft: true })}
     ${a.sections
@@ -412,19 +411,6 @@ export function about(ctx) {
       </div>
     </section>`)
       .join('')}
-    <section class="ip-section ip-horeca" id="horeca" aria-labelledby="h-horeca">
-      <div class="ip-wrap ip-split">
-        <div class="ip-split__text" data-reveal>
-          <p class="ip-eyebrow">${md(ctx, p.eyebrow)}</p>
-          <h2 id="h-horeca">${esc(p.title)}</h2>
-          <p class="ip-lead">${md(ctx, p.paras[0])}</p>
-          ${p.paras.slice(1).map((t) => `<p>${md(ctx, t)}</p>`).join('')}
-          <p class="ip-fact">${icon('check')}<span>${md(ctx, p.fact)}</span></p>
-          <a class="ip-btn ip-btn--dark ip-btn--lg" href="${quoteUrl(ctx)}"><span>${esc(p.quoteTitle)}</span>${icon('arrow')}</a>
-        </div>
-        <div class="ip-split__media" data-reveal>${picture(ctx, 'custom-ice', { alt: p.imageAlt, sizes: '(min-width: 900px) 40vw, 100vw' })}</div>
-      </div>
-    </section>
     ${ctaBand(ctx)}`;
 }
 
@@ -460,7 +446,6 @@ export function notFound(ctx) {
   return `
     <section class="ip-notfound">
       <div class="ip-wrap">
-        <p class="ip-eyebrow">404</p>
         <h1 class="ip-pagehead__title">${esc(c.notFound.title)}</h1>
         <a class="ip-btn ip-btn--primary ip-btn--lg" href="${urlFor('home', lang)}"><span>${esc(c.notFound.back)}</span>${icon('arrow')}</a>
       </div>

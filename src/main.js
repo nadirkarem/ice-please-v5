@@ -305,10 +305,12 @@ function initStory() {
   const layers = [...story.querySelectorAll('.ip-story__layer')];
   const chapters = [...story.querySelectorAll('[data-ip-chapter]')];
   const count = story.querySelector('[data-count]');
+  const stepName = story.querySelector('[data-step]');
   const button = story.querySelector('[data-ip-story-toggle]');
   const label = button?.querySelector('[data-label]');
   if (reduced() || !chapters.length) {
     layers.forEach((l, i) => l.classList.toggle('is-on', i === layers.length - 1));
+    if (stepName && chapters.length) stepName.textContent = chapters[chapters.length - 1].dataset.step;
     stage.style.setProperty('--clear', '1');
     button?.setAttribute('hidden', '');
     return;
@@ -325,6 +327,7 @@ function initStory() {
     current = i;
     layers.forEach((l, k) => l.classList.toggle('is-on', k === i));
     if (count) count.textContent = String(i + 1);
+    if (stepName && chapters[i]?.dataset.step) stepName.textContent = chapters[i].dataset.step;
     sync();
   };
   button?.addEventListener('click', () => { userPaused = !userPaused; sync(); });

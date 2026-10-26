@@ -170,7 +170,7 @@ export function layout(ctx, page, main, { fragment = false } = {}) {
 
   const fontPreload = lang === 'ar'
     ? '<link rel="preload" href="/fonts/noto-sans-arabic-arabic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>'
-    : '<link rel="preload" href="/fonts/instrument-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>';
+    : '<link rel="preload" href="/fonts/schibsted-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>';
 
   return `<!doctype html>
 <html lang="${lang}" dir="${dir}">

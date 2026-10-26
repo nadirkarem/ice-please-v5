@@ -1,6 +1,6 @@
 # Ice Please, maquette du site (FR / EN / AR)
 
-Aperçu en ligne : **https://nadirkarem.github.io/ice-please-site/**
+Aperçu en ligne : **https://nadirkarem.github.io/ice-please-v5/**
 
 Maquette de refonte du site d'Ice Please Morocco (FAAB & CO), glaçons premium et clear ice pour les professionnels de la boisson. Ce n'est pas le site officiel : les textes reprennent le site actuel, les visuels de synthèse (vidéo, sphère dans un verre de whisky) sont des illustrations, et la page est en `noindex`.
 
@@ -10,15 +10,15 @@ Site statique en HTML, CSS et JavaScript, construit avec [Vite](https://vite.dev
 
 ```bash
 npm install --legacy-peer-deps
-npm run dev      # http://127.0.0.1:5200
-npm run build    # génère dist/ (42 pages)
+npm run dev      # http://127.0.0.1:5300
+npm run build    # génère dist/ (45 pages)
 ```
 
 Pour tester la construction sous un sous-dossier, comme sur GitHub Pages :
 
 ```bash
-BASE_PATH=/ice-please-site npm run build
-BASE_PATH=/ice-please-site npx vite preview
+BASE_PATH=/ice-please-v5 npm run build
+BASE_PATH=/ice-please-v5 npx vite preview
 ```
 
 ## Où modifier quoi
