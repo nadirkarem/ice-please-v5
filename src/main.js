@@ -18,7 +18,7 @@ function initPage() {
   initReveal();
   initHeroMelt();
   initFrost();
-  initStory();
+  initSaga();
   initScenes();
   initVideo();
   initFloatingButton();
@@ -297,58 +297,100 @@ function initFrost() {
   });
 }
 
-/* Know-how story: the stage plays the film of the chapter in view (one at a time) and fills the progress bar (--clear). */
-function initStory() {
-  const story = document.querySelector('[data-ip-story]');
-  if (!story) return;
-  const stage = story.querySelector('.ip-story__stage');
-  const layers = [...story.querySelectorAll('.ip-story__layer')];
-  const chapters = [...story.querySelectorAll('[data-ip-chapter]')];
-  const count = story.querySelector('[data-count]');
-  const stepName = story.querySelector('[data-step]');
-  const button = story.querySelector('[data-ip-story-toggle]');
-  const label = button?.querySelector('[data-label]');
-  if (reduced() || !chapters.length) {
-    layers.forEach((l, i) => l.classList.toggle('is-on', i === layers.length - 1));
-    if (stepName && chapters.length) stepName.textContent = chapters[chapters.length - 1].dataset.step;
-    stage.style.setProperty('--clear', '1');
-    button?.setAttribute('hidden', '');
+/* Know-how scene (.ip-saga): one pinned stage driven by the scroll position, in units of the viewport height.
+   The window opens (--e), docks into its frame (--d), then four steps follow: u runs 0 to 4, the film and the claim of
+   step k are on screen for u between k and k+1 and cross-fade around the whole numbers. Under reduced motion (or without
+   script) nothing is set up: the section stays a band followed by four stills, and the pause button plays the opening
+   film. */
+function initSaga() {
+  const saga = document.querySelector('[data-ip-saga]');
+  if (!saga) return;
+  const openVideo = saga.querySelector('.ip-saga__openvideo');
+  const openLayer = saga.querySelector('.ip-saga__open');
+  const films = [...saga.querySelectorAll('.ip-saga__film')];
+  const claims = [...saga.querySelectorAll('.ip-saga__claim')];
+  const toggles = [...saga.querySelectorAll('[data-ip-saga-toggle]')];
+  const stepName = saga.querySelector('[data-step]');
+  const count = saga.querySelector('[data-count]');
+  let userPaused = false, active = -1;
+  const label = () => toggles.forEach((b) => { b.setAttribute('aria-pressed', String(userPaused)); b.querySelector('[data-label]').textContent = userPaused ? b.dataset.play : b.dataset.pause; });
+
+  if (reduced() || !('IntersectionObserver' in window)) {
+    userPaused = true; label();
+    toggles.forEach((b) => b.addEventListener('click', () => {
+      if (openVideo.paused) { userPaused = false; openVideo.play().catch(() => {}); } else { userPaused = true; openVideo.pause(); }
+      label();
+    }));
     return;
   }
-  let current = 0, inView = false, userPaused = false;
-  const sync = () => {
-    layers.forEach((l, k) => {
-      if (k === current && inView && !userPaused) l.play().catch(() => {});
-      else l.pause();
+
+  const clamp = (v) => Math.min(Math.max(v, 0), 1);
+  const smooth = (t) => { t = clamp(t); return t * t * (3 - 2 * t); };
+  const ease = (t) => { t = clamp(t); return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+  const phones = window.matchMedia('(max-width: 899px)');
+  const plan = () => (phones.matches
+    ? { open: 0.9, dockAt: 1.3, dock: 0.6, step: 1.0, k: 6.1 }
+    : { open: 1.0, dockAt: 1.5, dock: 0.9, step: 1.15, k: 7.35 });
+  let P = plan();
+  saga.classList.add('is-live');
+  saga.style.setProperty('--saga-k', String(P.k));
+
+  let near = false, frame = 0, current = null;
+  const playing = (video, on) => { if (on && !userPaused) { if (video.paused) video.play().catch(() => {}); } else if (!video.paused) video.pause(); };
+  const apply = (s) => {
+    const e = ease(s / P.open);
+    const d = ease((s - P.dockAt) / P.dock);
+    const u = (s - (P.dockAt + P.dock)) / P.step;
+    saga.style.setProperty('--e', e.toFixed(4));
+    saga.style.setProperty('--d', d.toFixed(4));
+    saga.classList.toggle('is-open', s > (saga.classList.contains('is-open') ? P.open * 0.85 : P.open * 0.95) && d < 0.12);
+    const fin0 = smooth((d - 0.55) / 0.45);
+    const openOpacity = 1 - fin0;
+    openLayer.style.opacity = openOpacity.toFixed(3);
+    films.forEach((f, k) => {
+      const inK = k === 0 ? fin0 : smooth((u - k + 0.22) / 0.44);
+      const outK = k === films.length - 1 ? 1 : 1 - smooth((u - (k + 1) + 0.22) / 0.44);
+      const o = inK * outK;
+      f.style.opacity = o.toFixed(3);
+      playing(f, o > 0.02);
     });
-    if (button) { button.setAttribute('aria-pressed', String(userPaused)); label.textContent = userPaused ? button.dataset.play : button.dataset.pause; }
+    playing(openVideo, openOpacity > 0.02);
+    claims.forEach((c, j) => {
+      const inJ = j === 0 ? smooth((u + 0.35) / 0.2) : smooth((u - j - 0.02) / 0.2);   // the old claim is gone just before the next arrives
+      const outJ = j === claims.length - 1 ? 1 : 1 - smooth((u - (j + 1) + 0.18) / 0.2);
+      c.style.opacity = (inJ * outJ).toFixed(3);
+      c.style.transform = `translateY(${((1 - inJ) * 28 - (1 - outJ) * 28).toFixed(1)}px)`;
+    });
+    const idx = Math.min(claims.length - 1, Math.max(0, Math.floor(u + 0.001)));
+    if (idx !== active) {
+      active = idx;
+      if (stepName) stepName.textContent = claims[idx].dataset.step;
+      if (count) count.textContent = String(idx + 1);
+    }
+    saga.style.setProperty('--clear', clamp(u / claims.length).toFixed(3));
   };
-  const set = (i) => {
-    current = i;
-    layers.forEach((l, k) => l.classList.toggle('is-on', k === i));
-    if (count) count.textContent = String(i + 1);
-    if (stepName && chapters[i]?.dataset.step) stepName.textContent = chapters[i].dataset.step;
-    sync();
-  };
-  button?.addEventListener('click', () => { userPaused = !userPaused; sync(); });
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((e) => { if (e.isIntersecting) set(chapters.indexOf(e.target)); });
-  }, { rootMargin: '-42% 0px -42% 0px' });
-  chapters.forEach((c) => io.observe(c));
-  const stageIo = new IntersectionObserver(([e]) => { inView = e.isIntersecting; sync(); }, { rootMargin: '120px 0px' });
-  stageIo.observe(stage);
-  let frame = 0;
-  const update = () => {
+  const progress = () => (-saga.getBoundingClientRect().top) / window.innerHeight;
+  const tick = () => {
     frame = 0;
-    const list = story.querySelector('.ip-story__chapters').getBoundingClientRect();
-    const p = Math.min(1, Math.max(0, (window.innerHeight * 0.55 - list.top) / list.height));
-    stage.style.setProperty('--clear', p.toFixed(3));
+    const target = progress();
+    current = current === null ? target : current + (target - current) * 0.2;
+    if (Math.abs(target - current) < 0.0007) current = target;
+    apply(current);
+    if (near && current !== target) frame = requestAnimationFrame(tick);
   };
-  const onScroll = () => { frame = frame || requestAnimationFrame(update); };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  update();
-  set(0);
-  track(() => { io.disconnect(); stageIo.disconnect(); window.removeEventListener('scroll', onScroll); layers.forEach((l) => l.pause()); });
+  const kick = () => { if (near && !frame) frame = requestAnimationFrame(tick); };
+  const io = new IntersectionObserver(([en]) => {
+    near = en.isIntersecting;
+    if (near) { current = null; kick(); } else { films.forEach((f) => f.pause()); openVideo.pause(); }
+  }, { rootMargin: '30% 0px 30% 0px' });
+  io.observe(saga);
+  const onResize = () => { P = plan(); saga.style.setProperty('--saga-k', String(P.k)); current = null; kick(); };
+  window.addEventListener('scroll', kick, { passive: true });
+  window.addEventListener('resize', onResize);
+  toggles.forEach((b) => b.addEventListener('click', () => { userPaused = !userPaused; label(); current = null; kick(); }));
+  label();
+  apply(progress());
+  track(() => { io.disconnect(); window.removeEventListener('scroll', kick); window.removeEventListener('resize', onResize); cancelAnimationFrame(frame); films.forEach((f) => f.pause()); openVideo.pause(); });
 }
 
 /* Smooth wheel scrolling (Lenis) on desktop pointers only: touch keeps the browser's own momentum, and

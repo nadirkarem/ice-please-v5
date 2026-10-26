@@ -507,40 +507,71 @@ html.lenis, html.lenis body { height: auto; }
     linear-gradient(to bottom, rgb(11 22 35 / 0.38), transparent 24%);
 }
 
-/* ---- know-how story: one short film per step -------------------------------------------------
-   A sticky stage shows the film of the current step (JS moves .is-on, plays that one only, and sets --clear for
-   the progress bar) while the four claims scroll past on the side. Without JavaScript the stage shows the last. */
-.ip-story { position: relative; background: var(--ip-glacier); }
-.ip-story__stage {
-  --clear: 0; position: sticky; top: 0; z-index: 2; height: 46svh; overflow: hidden; isolation: isolate;
-  background: var(--ip-mist); border-radius: 0 0 var(--ip-radius-l) var(--ip-radius-l);
+/* ---- know-how scene: opening film, docking, four steps --------------------------------------------------
+   One pinned stage. --e (0 to 1) opens the window, --d (0 to 1) docks the stage into its frame (the left column on
+   desktop, the top band on phones); script sets both from the scroll position and cross-fades the four films and the
+   four claims. Without script or under reduced motion the section is a band followed by four stills. */
+.ip-saga { --e: 1; --d: 0; --saga-k: 7.35; --saga-gap: clamp(24px, 4vw, 64px); position: relative; }
+.ip-saga { --rect-w: calc((min(100%, var(--ip-wrap) + 2 * var(--ip-gutter)) - 2 * var(--ip-gutter) - var(--saga-gap)) * 7 / 12); --rect-s: calc((100% - min(100%, var(--ip-wrap) + 2 * var(--ip-gutter))) / 2 + var(--ip-gutter)); --rect-e: calc(100% - var(--rect-s) - var(--rect-w)); --rect-t: 24px; --clip-l: var(--rect-s); --clip-r: var(--rect-e); --rect-cx: calc(var(--rect-s) + var(--rect-w) / 2); }
+.ip[dir='rtl'] .ip-saga { --clip-l: var(--rect-e); --clip-r: var(--rect-s); --rect-cx: calc(100% - var(--rect-s) - var(--rect-w) / 2); }
+.ip-saga__stage { position: relative; isolation: isolate; overflow: hidden; min-height: min(88svh, 820px); color: #fff; background: var(--ip-fjord); }
+.ip-saga__open { position: absolute; inset: 0; z-index: -2; }
+.ip-saga__open video, .ip-saga__poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+.ip-saga__veil { position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgb(10 36 80 / 0.8), rgb(10 36 80 / 0) 62%), linear-gradient(180deg, rgb(10 40 92 / 0.85), rgb(10 40 92 / 0) 62%); }
+.ip-saga__title { position: absolute; inset-inline: max(var(--ip-gutter), calc((100% - var(--ip-wrap)) / 2)); top: clamp(96px, 16svh, 168px); margin: 0; font-size: clamp(3.4rem, 11vw, 10rem); font-weight: 600; line-height: 0.92; letter-spacing: -0.04em; color: #fff; text-wrap: balance; text-shadow: 0 2px 36px rgb(10 36 80 / 0.3); }
+.ip-saga__ghost { display: none; color: var(--ip-ink); text-shadow: none; }
+.ip-saga__intro { position: absolute; z-index: 2; inset-inline: 0; bottom: 0; padding-block: clamp(36px, 6vw, 80px); }
+.ip-saga .ip-lead { max-width: 32rem; color: rgb(255 255 255 / 0.95); }
+.ip-saga__toggle { min-height: 44px; padding: 0 1.1em; border-radius: 999px; border: 0; color: var(--ip-ink); font-size: 0.9rem; font-weight: 600; background: rgb(255 255 255 / 0.8); -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); box-shadow: inset 0 0 0 1px rgb(11 22 35 / 0.14), 0 6px 20px rgb(11 22 35 / 0.12); transition: background-color 0.25s, transform 0.3s var(--ip-spring); }
+.ip-saga__toggle:active { transform: scale(0.96); }
+@media (hover: hover) { .ip-saga__toggle:hover { background: #fff; } }
+.ip-saga__toggle--open { position: absolute; z-index: 3; inset-inline-end: var(--ip-gutter); top: clamp(72px, 10svh, 96px); }
+.ip-saga__rect { display: none; }
+.ip-saga__claimswrap { padding-block: clamp(40px, 6vw, 88px); }
+.ip-saga__claims { display: grid; gap: clamp(28px, 4vw, 56px) 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.ip-saga__claim { display: grid; gap: 14px; align-content: start; }
+.ip-saga__still { width: 100%; height: auto; aspect-ratio: 5 / 6; object-fit: cover; border-radius: var(--ip-radius-m); background: var(--ip-mist); }
+.ip-saga .ip-chapter__claim { font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem); }
+
+/* live: a tall track, one pinned stage */
+.ip-saga.is-live { height: calc(100svh * (1 + var(--saga-k))); }
+.ip-saga.is-live .ip-saga__pin { position: sticky; top: 0; height: 100svh; overflow: clip; background: var(--ip-glacier); }
+.ip-saga.is-live .ip-saga__ghost { display: block; opacity: max(0, calc(1 - var(--d) * 1.8)); }
+.ip-saga.is-live .ip-saga__stage { position: absolute; inset: 0; min-height: 0; background: var(--ip-fjord);
+  clip-path: inset(calc((1 - var(--e)) * 21% + var(--d) * var(--rect-t)) calc((1 - var(--e)) * 27% + var(--d) * var(--clip-r)) calc((1 - var(--e)) * 21% + var(--d) * var(--rect-t)) calc((1 - var(--e)) * 27% + var(--d) * var(--clip-l)) round calc((1 - var(--e)) * 26px + var(--d) * 20px)); }
+.ip-saga.is-live .ip-saga__open { translate: calc(var(--d) * (var(--rect-cx) - 50%)) 0; scale: calc(1.32 - 0.32 * var(--e)); }
+.ip-saga.is-live .ip-saga__title:not(.ip-saga__ghost) { transform: translateY(calc((1 - var(--e)) * 14svh)); opacity: max(0, calc(1 - var(--d) * 1.8)); }
+.ip-saga.is-live .ip-saga__ghost { transform: translateY(calc((1 - var(--e)) * 14svh)); }
+.ip-saga.is-live .ip-saga__veil { opacity: max(0, calc(1 - var(--d) * 1.6)); }
+.ip-saga.is-live .ip-saga__intro { opacity: 0; visibility: hidden; transform: translateY(28px); transition: opacity 0.6s var(--ip-ease), transform 0.8s var(--ip-ease), visibility 0s linear 0.6s; }
+.ip-saga.is-live.is-open .ip-saga__intro { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.ip-saga.is-live .ip-saga__toggle--open { opacity: max(0, calc(1 - var(--d) * 3)); }
+.ip-saga.is-live .ip-saga__rect { display: block; position: absolute; inset-block: var(--rect-t); inset-inline-start: var(--rect-s); width: var(--rect-w); }
+.ip-saga.is-live .ip-saga__films { position: absolute; inset: 0; }
+.ip-saga__film { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+.ip-saga.is-live .ip-saga__rect::after { content: ''; position: absolute; inset: auto 0 0; z-index: 1; height: 38%; pointer-events: none; background: linear-gradient(to top, rgb(14 34 60 / 0.62), transparent); opacity: calc((var(--d) - 0.6) * 2.5); }
+.ip-saga__caption { position: absolute; inset: auto 20px 18px; z-index: 2; display: grid; gap: 10px; color: #fff; font-size: 0.9375rem; font-weight: 600; text-shadow: 0 1px 12px rgb(11 22 35 / 0.55); font-variant-numeric: tabular-nums; opacity: max(0, calc((var(--d) - 0.7) * 3.3)); }
+.ip-saga__step { font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+.ip-saga__bar { display: flex; align-items: center; gap: 0.8rem; }
+.ip-saga__bar i { position: relative; flex: 1; height: 2px; overflow: hidden; background: rgb(255 255 255 / 0.35); }
+.ip-saga__bar i::after { content: ''; position: absolute; inset: 0; background: #fff; transform-origin: left; transform: scaleX(var(--clear, 0)); }
+.ip[dir='rtl'] .ip-saga__bar i::after { transform-origin: right; }
+.ip-saga__toggle--rect { position: absolute; z-index: 3; inset-inline-end: 16px; top: 16px; opacity: max(0, calc((var(--d) - 0.8) * 5)); }
+.ip-saga.is-live .ip-saga__claimswrap { position: absolute; inset: 0; z-index: 2; max-width: none; padding: 0; margin: 0; pointer-events: none; }
+.ip-saga.is-live .ip-saga__claims { position: absolute; inset-block: 0; inset-inline: calc(var(--rect-s) + var(--rect-w) + var(--saga-gap)) var(--rect-s); display: grid; grid-template-columns: 1fr; align-content: center; gap: 0; }
+.ip-saga.is-live .ip-saga__claim { grid-area: 1 / 1; opacity: 0; will-change: opacity, transform; }
+.ip-saga.is-live .ip-saga__still { display: none; }
+.ip-saga.is-live .ip-chapter__claim { font-size: clamp(2.4rem, 1.2rem + 4.6vw, 4.75rem); max-width: 11ch; }
+@media (max-width: 899px) {
+  .ip-saga { --saga-k: 6.1; --rect-t: 0px; }
+  .ip-saga.is-live .ip-saga__stage { clip-path: inset(calc((1 - var(--e)) * 24%) calc((1 - var(--e)) * 12%) calc((1 - var(--e)) * 24% + var(--d) * 54%) calc((1 - var(--e)) * 12%) round calc((1 - var(--e)) * 22px) calc((1 - var(--e)) * 22px) calc((1 - var(--e)) * 22px + var(--d) * 20px) calc((1 - var(--e)) * 22px + var(--d) * 20px)); }
+  .ip-saga.is-live .ip-saga__open { translate: 0 calc(var(--d) * -27%); }
+  .ip-saga__title { inset-inline: var(--ip-gutter); max-width: 6ch; font-size: clamp(3.6rem, 1rem + 19vw, 6.4rem); }
+  .ip[lang='ar'] .ip-saga__title { max-width: 8ch; }
+  .ip-saga.is-live .ip-saga__rect { inset: 0 0 auto 0; width: 100%; height: 46%; }
+  .ip-saga.is-live .ip-saga__claims { inset-block: 46% 0; inset-inline: var(--ip-gutter); }
+  .ip-saga.is-live .ip-chapter__claim { font-size: clamp(2.3rem, 1rem + 9vw, 3.6rem); }
 }
-.ip-story__layers { position: absolute; inset: 0; }
-.ip-story__layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; opacity: 0; scale: 1.04; transition: opacity 0.9s var(--ip-ease), scale 1.6s var(--ip-ease); }
-.ip-story__layer.is-on { opacity: 1; scale: 1; }
-html:not(.js) .ip-story__layer { opacity: 0; } html:not(.js) .ip-story__layer:last-child { opacity: 1; scale: 1; }
-.ip-story__stage::after { content: ''; position: absolute; inset: auto 0 0; z-index: 1; height: 38%; pointer-events: none; background: linear-gradient(to top, rgb(14 34 60 / 0.62), transparent); }
-.ip-story__caption { position: absolute; inset: auto 20px 18px; z-index: 2; display: grid; gap: 10px; color: #fff; font-size: 0.9375rem; font-weight: 600; text-shadow: 0 1px 12px rgb(11 22 35 / 0.55); font-variant-numeric: tabular-nums; }
-.ip-story__step { font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
-.ip-story__bar { display: flex; align-items: center; gap: 0.8rem; }
-.ip-story__toggle { position: absolute; z-index: 3; inset-inline-end: 16px; top: 16px; min-height: 44px; padding: 0 1.1em; border-radius: 999px; border: 0; color: var(--ip-ink); font-size: 0.9rem; font-weight: 600; background: rgb(255 255 255 / 0.78); -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); box-shadow: inset 0 0 0 1px rgb(11 22 35 / 0.14), 0 6px 20px rgb(11 22 35 / 0.12); transition: background-color 0.25s, transform 0.3s var(--ip-spring); }
-.ip-story__toggle:active { transform: scale(0.96); }
-@media (hover: hover) { .ip-story__toggle:hover { background: #fff; } }
-.ip-story__bar i { position: relative; flex: 1; height: 2px; overflow: hidden; background: rgb(255 255 255 / 0.35); }
-.ip-story__bar i::after { content: ''; position: absolute; inset: 0; background: #fff; transform-origin: left; transform: scaleX(var(--clear)); }
-.ip[dir='rtl'] .ip-story__bar i::after { transform-origin: right; }
-.ip-story__chapters { padding-block: 10svh 14svh; }
-.ip-chapter { min-height: 64svh; display: grid; align-content: center; gap: 0.9rem; padding-inline: var(--ip-gutter); }
-.ip-chapter__claim { font-size: clamp(2.4rem, 1.2rem + 4.6vw, 4.75rem); font-weight: 520; line-height: 1.02; letter-spacing: -0.034em; max-width: 11ch; text-wrap: balance; }
-html:not(.js) .ip-chapter, .no-motion .ip-chapter { min-height: 0; padding-block: 1.2rem; }
-@media (min-width: 900px) {
-  .ip-story__grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 4vw, 64px); align-items: start; max-width: calc(var(--ip-wrap) + 2 * var(--ip-gutter)); margin-inline: auto; padding-inline: var(--ip-gutter); }
-  .ip-story__stage { top: 24px; height: calc(100svh - 48px); border-radius: var(--ip-radius-l); }
-  .ip-story__chapters { padding-block: 0; }
-  .ip-chapter { min-height: 100svh; padding-inline: 0; }
-  .ip[dir='rtl'] .ip-story__grid { direction: rtl; }
-}
-@media (prefers-reduced-motion: reduce) { .ip-story__layer { transition: none; scale: 1; } }
 
 /* ---- film: the range in a quiet loop ---------------------------------------------------------- */
 /* Scroll-revealed film: --ip-e (0 → 1) is set by script from the scroll position. Without script, or under
@@ -552,7 +583,7 @@ html:not(.js) .ip-chapter, .no-motion .ip-chapter { min-height: 0; padding-block
 .ip-reveal__veil { position: absolute; inset: 0; background: linear-gradient(0deg, rgb(10 36 80 / 0.8), rgb(10 36 80 / 0) 62%), linear-gradient(180deg, rgb(10 40 92 / 0.85), rgb(10 40 92 / 0) 62%); }
 .ip-reveal__title { position: absolute; inset-inline: max(var(--ip-gutter), calc((100% - var(--ip-wrap)) / 2)); top: clamp(96px, 16svh, 168px); margin: 0; font-size: clamp(3.4rem, 11vw, 10rem); font-weight: 600; line-height: 0.92; letter-spacing: -0.04em; color: #fff; text-wrap: balance; text-shadow: 0 2px 36px rgb(10 36 80 / 0.3); }
 .ip-reveal__title--page { display: none; color: var(--ip-ink); }
-.ip[lang='ar'] .ip-reveal__title { letter-spacing: 0; line-height: 1.1; font-size: clamp(3.2rem, 11vw, 10rem); }
+.ip[lang='ar'] .ip-saga__title, .ip[lang='ar'] .ip-reveal__title { letter-spacing: 0; line-height: 1.1; font-size: clamp(3.2rem, 11vw, 10rem); }
 .ip-reveal__body { position: absolute; z-index: 2; inset-inline: 0; bottom: 0; padding-block: clamp(36px, 6vw, 80px); display: grid; gap: 1.1rem; justify-items: start; }
 .ip-reveal .ip-lead { max-width: 32rem; color: rgb(255 255 255 / 0.94); }
 .ip-reveal .ip-link { color: #fff; }

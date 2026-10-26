@@ -112,32 +112,50 @@ function contactDetails(ctx) {
 }
 
 /**
- * Know-how as a story: a sticky stage that shows one short film per step while the four claims scroll past
- * (filtration and osmosis, UV light, serving without contact, slow melt). Only the film of the current step plays.
- * Each film is a computer-generated render made for this site (public/media/story-N.*); without JavaScript the
- * stage shows the poster of the last step.
+ * Know-how as one continuous scene. A film opens from a window to full bleed with the title (the whisky glass), then
+ * docks into a pinned frame while the four claims take turns beside it; the films of the four steps cross-fade inside
+ * that frame as the visitor scrolls (filtration and osmosis, UV light, serving without contact, slow melt, which is the
+ * glass of the opening again). Every film is a computer-generated render made for this site. Without script or under
+ * reduced motion the same markup reads as a band followed by four stills with their claims.
  */
-function story(ctx) {
+function saga(ctx, { id, title, text, name, label }) {
   const { c } = ctx;
   const claims = c.mentions;
-  const layers = [1, 2, 3, 4].map((n, i) => `<video class="ip-story__layer${i === 0 ? ' is-on' : ''}" muted loop playsinline preload="none" poster="/media/story-${n}-poster.jpg" tabindex="-1">
-            <source src="/media/story-${n}.mp4" type="video/mp4">
-            <source src="/media/story-${n}.webm" type="video/webm">
-          </video>`).join('');
-  const chapters = claims.map((claim, i) => `<li class="ip-chapter" data-ip-chapter data-step="${esc(c.savoir.stepLabels[i])}">
-          <h3 class="ip-chapter__claim"><span class="ip-sr">${esc(c.savoir.stepLabels[i])} : </span>${esc(claim)}</h3>
-        </li>`).join('');
-  return `<section class="ip-story" data-ip-story aria-label="${esc(c.ui.steps)}">
-      <div class="ip-story__grid">
-        <div class="ip-story__stage">
-          <div class="ip-story__layers" aria-hidden="true">${layers}</div>
-          <div class="ip-story__caption" aria-hidden="true">
-            <span class="ip-story__step" data-step>${esc(c.savoir.stepLabels[0])}</span>
-            <span class="ip-story__bar"><span><span data-count>1</span> ${esc(c.ui.stepOf)} ${claims.length}</span><i></i></span>
+  const steps = c.savoir.stepLabels;
+  const films = [1, 2, 3, 4].map((n) => `<video class="ip-saga__film" muted loop playsinline preload="none" poster="/media/story-${n}-poster.jpg" tabindex="-1">
+              <source src="/media/story-${n}.mp4" type="video/mp4">
+              <source src="/media/story-${n}.webm" type="video/webm">
+            </video>`).join('');
+  const items = claims.map((claim, i) => `<li class="ip-saga__claim" data-ip-chapter data-step="${esc(steps[i])}">
+            <img class="ip-saga__still" src="/media/story-${i + 1}-poster.jpg" width="900" height="1080" alt="" loading="lazy">
+            <h3 class="ip-chapter__claim"><span class="ip-sr">${esc(steps[i])} : </span>${esc(claim)}</h3>
+          </li>`).join('');
+  const toggle = (cls) => `<button class="ip-saga__toggle ${cls}" type="button" data-ip-saga-toggle aria-pressed="false" data-pause="${esc(c.ui.videoPause)}" data-play="${esc(c.ui.videoPlay)}"><span data-label>${esc(c.ui.videoPause)}</span></button>`;
+  return `<section class="ip-saga" data-ip-saga aria-labelledby="${id}">
+      <div class="ip-saga__pin">
+        <p class="ip-saga__title ip-saga__ghost" aria-hidden="true">${esc(title)}</p>
+        <div class="ip-saga__stage">
+          <div class="ip-saga__open">
+            <img class="ip-saga__poster" src="/media/${name}-poster.jpg" alt="" width="1280" height="720" loading="lazy" aria-hidden="true">
+            <video class="ip-saga__openvideo" muted loop playsinline preload="none" poster="/media/${name}-poster.jpg" aria-label="${esc(label)}">
+              <source src="/media/${name}.mp4" type="video/mp4">
+              <source src="/media/${name}.webm" type="video/webm">
+            </video>
           </div>
-          <button class="ip-story__toggle" type="button" data-ip-story-toggle aria-pressed="false" data-pause="${esc(c.ui.videoPause)}" data-play="${esc(c.ui.videoPlay)}"><span data-label>${esc(c.ui.videoPause)}</span></button>
+          <div class="ip-saga__veil"></div>
+          <h2 class="ip-saga__title" id="${id}">${esc(title)}</h2>
+          <div class="ip-wrap ip-saga__intro"><p class="ip-lead">${md(ctx, text)}</p></div>
+          ${toggle('ip-saga__toggle--open')}
+          <div class="ip-saga__rect">
+            <div class="ip-saga__films" aria-hidden="true">${films}</div>
+            <div class="ip-saga__caption" aria-hidden="true">
+              <span class="ip-saga__step" data-step>${esc(steps[0])}</span>
+              <span class="ip-saga__bar"><span><span data-count>1</span> ${esc(c.ui.stepOf)} ${claims.length}</span><i></i></span>
+            </div>
+            ${toggle('ip-saga__toggle--rect')}
+          </div>
         </div>
-        <ol class="ip-story__chapters">${chapters}</ol>
+        <div class="ip-wrap ip-saga__claimswrap"><ol class="ip-saga__claims" aria-label="${esc(c.ui.steps)}">${items}</ol></div>
       </div>
     </section>`;
 }
@@ -303,6 +321,8 @@ export function home(ctx) {
     </section>
 
 
+    ${instagram(ctx)}
+
     <section class="ip-section ip-contact" id="contact" aria-labelledby="h-contact">
       <div class="ip-wrap ip-contact__grid">
         <div class="ip-contact__intro" data-reveal>
@@ -312,9 +332,7 @@ export function home(ctx) {
         </div>
         <div class="ip-panel" data-reveal>${form(ctx, 'contact')}</div>
       </div>
-    </section>
-
-    ${instagram(ctx)}`;
+    </section>`;
 }
 
 export function glacons(ctx) {
@@ -373,8 +391,7 @@ export function savoir(ctx) {
   const s = c.savoir;
   return `
     ${splitHead(ctx, { image: 'ice-stick-photo', title: s.title, lead: s.paras })}
-    ${reveal(ctx, { id: 'h-art', title: s.artTitle, text: s.artText, name: 'ice-whisky', label: c.ui.videoLabelGlass })}
-    ${story(ctx)}
+    ${saga(ctx, { id: 'h-art', title: s.artTitle, text: s.artText, name: 'ice-whisky', label: c.ui.videoLabelGlass })}
     ${ctaBand(ctx)}`;
 }
 
